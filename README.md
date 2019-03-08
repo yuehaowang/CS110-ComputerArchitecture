@@ -1,9 +1,10 @@
 # Computer Architecture (CS110)
 
-Lecture: Sören Schwertfeger 师泽仁
-Webpage: http://shtech.org/course/ca/19s/
+- Lecture: Sören Schwertfeger 师泽仁
 
-### May my passion on computer science burns forever.
+- Webpage: http://shtech.org/course/ca/19s/
+
+- May my passion on computer science burns forever.
 
 ## Setup
 
