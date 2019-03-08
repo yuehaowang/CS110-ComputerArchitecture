@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<!-- saved from url=(0037)http://shtech.org/course/ca/19s/hw/2/ -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Homework 2 - Computer Architecture I - ShanghaiTech University</title>
+<link rel="shortcut icon" type="image/png" href="http://shtech.org/course/ca/19s/favicon.ico">
+
+<style type="text/css">
+code {background-color: #ddeeff; color: #000000;}
+kbd {background-color: #ddeeff; color: #000000;}
+.new {background-color: #ffff00; color: #000000;}
+</style>
+</head>
+<body>
+<header>
+<h2>Homework 2</h2>
+</header>
+
+<a href="http://shtech.org/course/ca/19s/">Computer Architecture I</a> <a href="http://www.shanghaitech.edu.cn/">ShanghaiTech University</a>
+<br>
+HW1 (in Autolab) &nbsp;&nbsp; HW2 <!--a href="../3">HW3</a-->
+
+
+<h3 id="task-1-doubll-in-c">Task 1: Doubly Linked Lists in C</h3>
+<h4 id="instructions">Instructions</h4>
+<p>Implement a doubly linked list in C. See the header file <a href="http://shtech.org/course/ca/19s/hw/2/doubll.h">doubll.h</a> for specifics.Implement the code in a file called "doubll.c".</p>
+<p>Your submission should only include the source code for the Doubly Linked List, <code>doubll.c</code>. Any other file found will directly result in a grade of 0. We will <strong>NOT</strong> be using your copy of the header file or Makefile.</p>
+<p>Compilation of the source code requires no errors or warnings and conformity to the C89 standard. The Makefile syntax is given below.</p>
+<pre><code>CC=gcc
+CFLAGS=-Wpedantic -Wall -Wextra -Werror -std=c89
+
+doubll.o: doubll.c doubll.h
+  ${CC} ${CFLAGS} doubll.c -o doubll.o</code></pre>
+<p> The above compilation requires a main function. However, your submission should <strong>NOT</strong> include any main function. </p>
+<p>We will test your program using the functions declared in the header file provided as well as some other functions defined by us. The output of the individual test cases will <strong>NOT</strong> be given in auto-grader and any attempt at retrieving the test cases or the program outputs will be seen as plagiarism.</p>
+<h4 id="consider-learning-before-you-start">Consider Learning Before You Start</h4>
+<ul>
+<li>Pointers and References</li>
+<li>C Memory Management</li>
+<li>Function Pointers</li>
+<li><a href="https://en.wikipedia.org/wiki/Doubly_linked_list">Doubly Linked List</a> </li>
+</ul>
+<h4 id="implementation-detail">Implementation details</h4>
+<p> You are required to implement doubly linked list with following rules: </p>
+<ul>
+	<li> When a function is provided with a pointer to an item by default it is not checked if that item belongs in fact to that list. Only if provided with a precompiler define called "CHECK_LIST" the program should do the (expensive) search if item is in that list.</li>
+	<li>We require that you will have one line with comments for every four non-blank lines. Comments have to be meaningful and in English.</li>
+	<li>No memory leaks are allowed. Memory leaks will be automatically detected and manually screened and will result in a decrease in your score after the deadline.</li>
+	<li>We will also impose a limit of 250 on your LoC (lines of code). Do not exceed this limit as we will deduct points for those who exceed this limit.</li>
+	<li>You can implement some helper functions in your code. However, your helper functions should not be accessed out of your file. We will check this manually and deduct points if you failed to do this.</li>
+</ul>
+<h4 id="Task 1 Submission"> Submission </h4>
+<p>Refer to the submission section at the end. </p>
+<h3 id="task-2-libraries">Task 2: Libraries</h3>
+<p>For all tasks assume that <code>doubll.h</code> will be provided in the working directory and your <code>doubll.c</code> will be copied to the current working directory.</p>
+<h4 id="task-2.1-static-library">Task 2.1: Static Library</h4>
+<h5 id="instructions-1">Instructions</h5>
+<p>Write a shell script named <code>staticlib.sh</code> that when invoked, produces a static library named <code>liblist.a</code> from the source files <code>doubll.c</code> and <code>doubll.h</code>.</p>
+<p>Then create a static-linked executable <code>staticlist</code> from <code>liblist.a</code> and <code>test.c</code>. Do not execute the program in the shell script.</p>
+<p><em>Hint: use the command</em> <code>ar</code> <em>to create the static library. Then use the command</em> <code>ld</code> <em>to</em> <em>create the executable file.</em></p>
+<h4 id="task-2.2-dynamic-link-library">Task 2.2 Dynamic-link Library</h4>
+<h5 id="instructions-2">Instructions</h5>
+<p>Write a shell script named <code>dynamiclib.sh</code> that when invoked, produces a dynamic-linked library named <code>liblist.so</code> from <code>doubll.c</code>.</p>
+<p>Then generate an executable named <code>dynamiclist</code> using <code>liblist.so</code> as well as <code>test.c</code>. Do not execute the program in the shell script.</p>
+
+<h3 id="submission">Submission</h3>
+<p> You should submit a compressed file named as <code>hw2.tar</code> to autolab.</p>
+<p>The directory tree of your submission should look like the following :</p>
+<pre><code>├── doubll.c
+├── dynamiclib.sh
+└── staticlib.sh
+</code></pre>
+<p> Note: Autolab grading results: </p>
+	<ul>
+		<li> <code>1-x</code> stands for grading results for task1. </li>
+		<li> <code>2-x</code> stands for grading results for task2. </li> 
+		<li> <code>3-0</code> stands for grading results for memory leak detection. </li>
+	</ul>
+<p> Note: your submission should <strong>NOT</strong> contain <code>main()</code> function </p>
+<h3 id="test-environemnt">Test Environment </h3>
+<p> The test environment on autolab is <strong>Ubuntu 16.04</strong> with <strong>gcc 5.x</strong></p>
+
+Last Modified: Feb. 27th, 2019 
+
+
+</body></html>
