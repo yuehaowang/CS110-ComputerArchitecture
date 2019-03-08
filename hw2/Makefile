@@ -13,7 +13,7 @@ memcheck: doubll.o task1.out test.c
 	&& valgrind --tool=memcheck --leak-check=full --track-origins=yes ./task1.out
 
 submission:
-	@echo "Generating submmission..." \
+	@echo "Generating submission..." \
 	&& tar -czvf ./hw2.tar doubll.c doubll.h staticlib.sh dynamiclib.sh \
 
 
