@@ -1,6 +1,6 @@
 # Computer Architecture (CS110)
 
-- Lecture: Sören Schwertfeger 师泽仁
+- Instructor: Sören Schwertfeger 师泽仁
 
 - Webpage: http://shtech.org/course/ca/19s/
 

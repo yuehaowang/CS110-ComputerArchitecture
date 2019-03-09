@@ -14,7 +14,7 @@ memcheck: doubll.o task1.out test.c
 
 submission:
 	@echo "Generating submission..." \
-	&& tar -czvf ./hw2.tar doubll.c doubll.h staticlib.sh dynamiclib.sh \
+	&& tar -czvf ./hw2.tar doubll.c staticlib.sh dynamiclib.sh \
 
 
 .PHONY: clean

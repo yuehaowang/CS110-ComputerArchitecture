@@ -4,6 +4,42 @@
 #include <stdio.h>
 
 
+/*********************** Helpers ***********************/
+
+static void move_item (doubll_item* prev, doubll_item* temp)
+{
+    if (temp -> prev != NULL) temp -> prev -> next = temp -> next;
+    if (temp -> next != NULL) temp -> next -> prev = temp -> prev;
+
+    temp -> prev = prev;
+    temp -> next = prev -> next;
+    if (prev -> next != NULL) prev -> next -> prev = temp;
+    prev -> next = temp;
+}
+
+#ifdef CHECK_LIST
+static bool is_item_in_list (doubll* list, doubll_item* item)
+{
+    doubll_item* temp;
+    
+    temp = &(list -> head);
+    while (temp != NULL) {
+        if (temp == item) return true;
+        temp = temp -> next;
+    }
+
+    return false;
+}
+#endif
+
+static bool invalid_list (doubll* list)
+{
+    return (list == NULL) || (list -> head).prev != NULL || (list -> head).next == NULL || (list -> tail).next != NULL || (list -> tail).prev == NULL;
+}
+
+
+/*********************** Implementation ***********************/
+
 void list_init (doubll *list)
 {
     (list -> head).next = &(list -> tail);
@@ -16,11 +52,6 @@ void list_init (doubll *list)
     (list -> tail).size = 0;
     
     list -> items = 0;
-}
-
-bool invalid_list(doubll* list)
-{
-    return (list == NULL) || (list -> head).prev != NULL || (list -> head).next == NULL || (list -> tail).next != NULL || (list -> tail).prev == NULL;
 }
 
 doubll_item* list_begin (doubll* list)
@@ -46,21 +77,6 @@ size_t list_size (doubll* list)
     if (invalid_list(list)) return -1;
     return list -> items;
 }
-
-#ifdef CHECK_LIST
-static bool is_item_in_list(doubll* list, doubll_item* item)
-{
-    doubll_item* temp;
-    
-    temp = &(list -> head);
-    while (temp != NULL) {
-        if (temp == item) return true;
-        temp = temp -> next;
-    }
-
-    return false;
-}
-#endif
 
 doubll_item* insert_list (doubll* list, doubll_item* item, void* data, size_t size)
 {
@@ -111,17 +127,6 @@ doubll_item* remove_item (doubll* list, doubll_item* item)
     (list -> items)--;
 
     return next;
-}
-
-static void move_item (doubll_item* prev, doubll_item* temp)
-{
-    if (temp -> prev != NULL) temp -> prev -> next = temp -> next;
-    if (temp -> next != NULL) temp -> next -> prev = temp -> prev;
-
-    temp -> prev = prev;
-    temp -> next = prev -> next;
-    if (prev -> next != NULL) prev -> next -> prev = temp;
-    prev -> next = temp;
 }
 
 void purge_list (doubll* list)
