@@ -88,12 +88,12 @@ main:
 #        quicksort(A, lo, p - 1 )
 #        quicksort(A, p + 1, hi)
 def_quick_sort:
-	# store ra in stack
+    # store ra in stack
     sw ra, 0(sp)
     # move sp to next ptr
     addi sp, sp, -4
     
-	# if lo >= hi, exit
+    # if lo >= hi, exit
     bge a2, a3, exit_quicksort
     
     # call partition
@@ -152,11 +152,11 @@ def_quick_sort:
 #    swap A[i + 1] with A[hi]
 #    return i + 1 
 def_partition:
-	# length (byte) of a word
-	li t3, 4
+    # length (byte) of a word
+    li t3, 4
     
     # A[hi] = the value of the (hi * 4)th byte of A
-	mul t4, a3, t3
+    mul t4, a3, t3
     # t6 is address of A[hi]
     add t6, a1, t4
     # s2 is the pivot
@@ -175,13 +175,13 @@ def_partition:
     
     # start of traversal
     traversal:
-    	# while j <  hi, loop
-    	bge t5, t6, exit_partition
+        # while j <  hi, loop
+        bge t5, t6, exit_partition
 
         # s3 is A[j]
         lw s3, 0(t5)
         
-    	# if A[j] < pivot
+        # if A[j] < pivot
         bge s3, s2, continue
         
         # i++
@@ -194,7 +194,7 @@ def_partition:
         sw s5, 0(t4)
         # store A[i] in A[j]
         sw s4, 0(t5)
-		# continue label
+        # continue label
         continue:
             # add 4 to t5 (j++)
             addi t5, t5, 4
@@ -202,9 +202,9 @@ def_partition:
             j traversal
     # exit label
     exit_partition:
-    	# i++
+        # i++
         addi t4, t4, 4
-    	# store A[i]
+        # store A[i]
         lw s4, 0(t4)
         # store A[hi]
         lw s5, 0(t6)
@@ -214,7 +214,7 @@ def_partition:
         sw s4, 0(t6)
         
         # length (byte) of a word
-		li t3, 4
+        li t3, 4
         # index of address t4 in array
         # cut off start of A
         sub t4, t4, a1
@@ -225,16 +225,16 @@ def_partition:
         # move sp to next ptr
         addi sp, sp, -4
         
-    	# return
-    	jr ra
+        # return
+        jr ra
     
     
 
 # programs ends
 # 
 exit:
-	# tell ecall to exit the program
-	addi a0, zero, 10
+    # tell ecall to exit the program
+    addi a0, zero, 10
     ecall                     # system call
 
 
@@ -245,9 +245,9 @@ print:
         lw      t4, size
         li      t5, 0
     print_loop:
-    	# if t5 == t4, end loop
-    	beq t5, t4, print_end
-    	# length (byte) of a word
+        # if t5 == t4, end loop
+        beq t5, t4, print_end
+        # length (byte) of a word
         li t6, 4
         # offset address of current element
         mul t6, t5, t6
@@ -268,8 +268,8 @@ print:
         # print
         ecall
         
-    	# next element
-    	addi t5, t5, 1
+        # next element
+        addi t5, t5, 1
         # continue loop
         j print_loop
     print_end:
