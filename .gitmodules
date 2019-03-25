@@ -1,0 +1,3 @@
+[submodule "RISCVAssembler"]
+	path = RISCVAssembler
+	url = https://github.com/peihaowang/RISCVAssembler.git
