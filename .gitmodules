@@ -1,0 +1,6 @@
+[submodule "RISCVAssembler"]
+	path = RISCVAssembler
+	url = https://github.com/peihaowang/RISCVAssembler.git
+[submodule "LinkerUtilities"]
+	path = LinkerUtilities
+	url = https://github.com/peihaowang/LinkerUtilities
