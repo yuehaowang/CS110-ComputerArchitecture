@@ -26,4 +26,4 @@ clean:
 	rm -f *.o ${TARGET}
 
 dist:
-	tar cf hw5.tar main.c maze.c maze.h heap.c heap.h node.c node.h
+	tar cf hw5.tar main.c maze.c maze.h heap.c heap.h node.c node.h utils.c utils.h

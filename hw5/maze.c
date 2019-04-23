@@ -165,7 +165,7 @@ maze_print_step (maze_t *m, node_t *n)
     offset_map_idx = 0;
     while (map[offset_map_idx++] != '\n');
 
-    while (n != NULL && n->mark != START) {
+    while (n != NULL && n->parent != NULL) {
         /*map_idx = offset_map_idx;
         for (i = 0; i < n->x; ++i)
             while (map[map_idx++] != '\n');
@@ -174,7 +174,8 @@ maze_print_step (maze_t *m, node_t *n)
         map[map_idx++] = '*';*/
 
         /* write to memory */
-        map[offset_map_idx + (n->x * (m->cols + 1)) + n->y] = '*';
+        if (n->mark != START && n->mark != GOAL)
+            map[offset_map_idx + (n->x * (m->cols + 1)) + n->y] = '*';
         
         n = n->parent;
     }
@@ -186,6 +187,48 @@ maze_print_step (maze_t *m, node_t *n)
     }
 }
 
+
+maze_t *
+maze_copy (maze_t *src)
+{
+    int i, j;
+    long map_idx;
+    char c;
+    
+    maze_t *m = malloc(sizeof(maze_t));
+    
+    /* store rows */
+    m->rows = src->rows;
+    /* store cols */
+    m->cols = src->cols;
+    /* store file handle */
+    m->file = src->file;
+    /* store file size */
+    m->file_size = src->file_size;
+    /* create memory map */
+    m->map = src->map;
+    /* clone nodes */
+    m->nodes = malloc(src->rows * src->cols * sizeof(node_t *));
+
+    map_idx = 0;
+    /* skip rows and cols */
+    while (m->map[map_idx++] != '\n');
+
+    for (i = 0; i < src->rows; ++i) {
+        for (j = 0; j < src->cols; ++j) {
+            mark_t mark = char_to_mark(m->map[map_idx++]);
+            maze_set_cell(m, i, j, mark);
+
+            if (mark == START)
+                m->start = maze_get_cell(m, i, j);
+            else if (mark == GOAL)
+                m->goal  = maze_get_cell(m, i, j);
+        }
+        while ((c = m->map[map_idx++]) != '\n' && c != EOF);
+    }
+
+    return m;
+}
 
 /* 
  * Maps a character C to its corresponding mark type. Returns the mark.
