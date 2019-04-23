@@ -1,0 +1,6 @@
+*.o
+astar
+std_ans/
+test*
+*.txt
+.vscode/
