@@ -33,7 +33,7 @@ typedef struct maze_t
 
 /* Function prototypes. */
 maze_t *maze_init (char *filename);
-void maze_destroy (maze_t *m);
+void maze_destroy (maze_t *m, int is_unmap);
 void maze_set_cell (maze_t *m, int x, int y, mark_t mark);
 node_t *maze_get_cell (maze_t *m, int x, int y);
 void maze_print_step (maze_t *m, node_t *n);

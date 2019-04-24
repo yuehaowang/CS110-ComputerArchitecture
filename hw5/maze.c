@@ -30,14 +30,14 @@ static mark_t char_to_mark (char c);
 maze_t *
 maze_init (char *filename)
 {
-    int rows, cols, i, j, c, f;
+    int rows, cols, i, j, f;
     maze_t *m = malloc(sizeof(maze_t));
     /* fopen file handler */
     FILE* temp_file;
     /* a struct to store file info */
     struct stat file_info;
     /* map-reading index */
-    long map_idx;
+    int map_offset;
 
     /* Open the source file and read in number of rows & cols. */
     temp_file = fopen(filename, "r+");    /* Open with "r+" since might modify */
@@ -70,13 +70,13 @@ maze_init (char *filename)
     /* create memory map */
     m->map = (char*)mmap(0, file_info.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, f, 0);
     /* init map-reading index */
-    map_idx = 0;
+    map_offset = 0;
     /* if mmap failed */
     if (m->map == MAP_FAILED) {
         perror("Failed to mmap file (read map)");
     }
     /* skip rows and cols */
-    while (m->map[map_idx++] != '\n');
+    while (m->map[map_offset++] != '\n');
 
     /* Allocate space for all nodes (cells) inside the maze, then read them
        in from the source file. The maze records all pointers to its nodes
@@ -84,7 +84,7 @@ maze_init (char *filename)
     m->nodes = malloc(rows * cols * sizeof(node_t *));
     for (i = 0; i < rows; ++i) {
         for (j = 0; j < cols; ++j) {
-            mark_t mark = char_to_mark(m->map[map_idx++]);
+            mark_t mark = char_to_mark(m->map[map_offset + i * (cols + 1) + j]);
             maze_set_cell(m, i, j, mark);
 
             if (mark == START)
@@ -92,7 +92,7 @@ maze_init (char *filename)
             else if (mark == GOAL)
                 m->goal  = maze_get_cell(m, i, j);
         }
-        while ((c = m->map[map_idx++]) != '\n' && c != EOF);
+        
     }
 
     return m;
@@ -103,7 +103,7 @@ maze_init (char *filename)
  *
  */
 void
-maze_destroy (maze_t *m)
+maze_destroy (maze_t *m, int is_unmap)
 {
     int i, j;
     for (i = 0; i < m->rows; ++i)
@@ -111,8 +111,10 @@ maze_destroy (maze_t *m)
             free(m->nodes[i * m->cols + j]);
     free(m->nodes);
     /* unmap memory */
-    munmap(m->map, m->file_size);
-    close(m->file);
+    if (is_unmap == 1) {
+        munmap(m->map, m->file_size);
+        close(m->file);
+    }
     free(m);
 }
 
@@ -192,8 +194,7 @@ maze_t *
 maze_copy (maze_t *src)
 {
     int i, j;
-    long map_idx;
-    char c;
+    int map_offset;
     
     maze_t *m = malloc(sizeof(maze_t));
     
@@ -210,13 +211,13 @@ maze_copy (maze_t *src)
     /* clone nodes */
     m->nodes = malloc(src->rows * src->cols * sizeof(node_t *));
 
-    map_idx = 0;
+    map_offset = 0;
     /* skip rows and cols */
-    while (m->map[map_idx++] != '\n');
+    while (m->map[map_offset++] != '\n');
 
     for (i = 0; i < src->rows; ++i) {
         for (j = 0; j < src->cols; ++j) {
-            mark_t mark = char_to_mark(m->map[map_idx++]);
+            mark_t mark = char_to_mark(m->map[map_offset + i * (src->cols + 1) + j]);
             maze_set_cell(m, i, j, mark);
 
             if (mark == START)
@@ -224,7 +225,6 @@ maze_copy (maze_t *src)
             else if (mark == GOAL)
                 m->goal  = maze_get_cell(m, i, j);
         }
-        while ((c = m->map[map_idx++]) != '\n' && c != EOF);
     }
 
     return m;

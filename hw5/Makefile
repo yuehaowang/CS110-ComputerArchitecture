@@ -25,5 +25,8 @@ utils.o: utils.c utils.h
 clean:
 	rm -f *.o ${TARGET}
 
+memcheck: astar
+	valgrind -v --tool=memcheck --leak-check=full --track-origins=yes ./astar ./maze-233.txt
+
 dist:
 	tar cf hw5.tar main.c maze.c maze.h heap.c heap.h node.c node.h utils.c utils.h
