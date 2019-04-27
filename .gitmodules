@@ -4,3 +4,6 @@
 [submodule "LinkerUtilities"]
 	path = LinkerUtilities
 	url = https://github.com/peihaowang/LinkerUtilities
+[submodule "ALU-Regfile"]
+	path = ALU-Regfile
+	url = https://github.com/peihaowang/ALU-Regfile.git
