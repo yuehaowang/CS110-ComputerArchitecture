@@ -60,7 +60,7 @@ heap_insert (heap_t *h, node_t *n)
     n->heap_id = cur;
 
     /* If will exceed current capacity, doubles the capacity. */
-    if (h->size == h->capacity) {
+    if (h->size == h->capacity - 1) {
         h->capacity *= 2;
         h->nodes = realloc(h->nodes, h->capacity * sizeof(node_t *));
     }

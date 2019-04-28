@@ -4,3 +4,4 @@ std_ans/
 test*
 *.txt
 .vscode/
+perf.*

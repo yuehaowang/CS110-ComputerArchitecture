@@ -40,7 +40,6 @@
 #include "heap.h"
 #include "node.h"
 #include "maze.h"
-#include "utils.h"
 #include "compass.h"    /* The heuristic. */
 
 /* Local helper functions. */
@@ -77,10 +76,7 @@ main (int argc, char *argv[])
     pthread_mutex_init(&maze_lock, NULL);
 
     /* Initializations. */
-    /*timer_start();*/
-
-    maze_f = maze_init(argv[1]);
-    maze_b = maze_copy(maze_f);
+    maze_init(argv[1], &maze_f, &maze_b);
 
     maze_f->start->gs = 0;
     maze_f->start->fs = heuristic(maze_f->start, maze_f->goal);
@@ -93,29 +89,20 @@ main (int argc, char *argv[])
     openset_b = heap_init();
     heap_insert(openset_b, maze_b->goal);
 
-    /*timer_end();?*/
-
     /* path search */
-    /*timer_start();*/
     pthread_create(&forward_thread, NULL, &astar_forward, NULL);
     pthread_create(&backward_thread, NULL, &astar_backward, NULL);
     pthread_join(forward_thread, NULL);
     pthread_join(backward_thread, NULL);
-    /*timer_end();*/
 
     /* Print the steps back. */
-    /*timer_start();*/
-    /*printf("meet point f: %d %d\n", meet_point_f->x, meet_point_f->y);
-    printf("meet point b: %d %d\n", meet_point_b->x, meet_point_b->y);*/
     maze_print_step(maze_f, meet_point_f);
     maze_print_step(maze_b, meet_point_b);
-    /*timer_end();*/
 
     /* Free resources and return. */
     pthread_mutex_destroy(&maze_lock);
 
-    maze_destroy(maze_f, 1);
-    maze_destroy(maze_b, 0);
+    maze_destroy(maze_f, maze_b);
     heap_destroy(openset_f);
     heap_destroy(openset_b);
     return 0;
@@ -127,7 +114,7 @@ void* astar_forward()
     node_t *cur = NULL;
     /* Loop and repeatedly extracts the node with the highest f-score to
        process on. */
-    while (openset_f->size > 0) {
+    while (openset_f->size > 0 && openset_b->size > 0) {
         int direction;
         node_t* cur_temp;
 
@@ -188,7 +175,7 @@ void* astar_backward()
     node_t *cur = NULL;
     /* Loop and repeatedly extracts the node with the highest f-score to
        process on. */
-    while (openset_b->size > 0) {
+    while (openset_b->size > 0 && openset_f->size > 0) {
         int direction;
         node_t* cur_temp;
 
