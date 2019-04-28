@@ -23,10 +23,13 @@ clean:
 	rm -f *.o ${TARGET}
 
 memcheck: $(TARGET)
-	valgrind -v --tool=memcheck --leak-check=full --track-origins=yes ./astar $(map)
+	valgrind -v --tool=memcheck --leak-check=full --track-origins=yes ./$(TARGET) $(map)
 
 perf: $(TARGET)
-	sudo perf record ./astar $(map)
+	sudo perf record -g  ./$(TARGET) $(map)
+
+clearmap: $(TARGET)
+	cp maps/*.txt ./
 
 dist:
 	tar cf hw5.tar main.c maze.c maze.h heap.c heap.h node.c node.h

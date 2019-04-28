@@ -2,6 +2,7 @@
 astar
 std_ans/
 test*
-*.txt
+maze*.txt
+!maps/*.txt
 .vscode/
 perf.*
