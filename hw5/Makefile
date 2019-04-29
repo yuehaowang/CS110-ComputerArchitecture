@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -Wpedantic -Wextra -Werror -lpthread -pthread -std=c89  -g
+CFLAGS=-Wall -Wpedantic -Wextra -Werror -lpthread -pthread -std=c89 -g
 
 TARGET=astar
 
@@ -26,9 +26,9 @@ memcheck: $(TARGET)
 	valgrind -v --tool=memcheck --leak-check=full --track-origins=yes ./$(TARGET) $(map)
 
 perf: $(TARGET)
-	sudo perf record -g  ./$(TARGET) $(map)
+	sudo perf record -a -g  ./$(TARGET) $(map)
 
-clearmap: $(TARGET)
+clearmap:
 	cp maps/*.txt ./
 
 dist:

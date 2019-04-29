@@ -26,7 +26,8 @@ heap_init (void)
     h->capacity = INIT_CAPACITY;    /* Initial capacity = 1000. */
     h->nodes = malloc(INIT_CAPACITY * sizeof(node_t *));
     h->nodes[0] = malloc(sizeof(node_t));
-    h->nodes[0]->fs = -INT_MAX;      /* Dummy node at index 0. */
+    h->nodes[0]->fs_f = -INT_MAX;      /* Dummy node at index 0. */
+    h->nodes[0]->fs_b = -INT_MAX;
     return h;
 }
 
@@ -47,17 +48,37 @@ heap_destroy (heap_t *h)
  *
  */
 void
-heap_insert (heap_t *h, node_t *n)
+heap_insert_f (heap_t *h, node_t *n)
 {
     int cur = ++h->size;    /* Index 0 lays dummy node, so increment first. */
     h->nodes[h->size] = n;
-    while (node_less(n, h->nodes[cur / 2])) {
+    while (node_less_f(n, h->nodes[cur / 2])) {
         h->nodes[cur] = h->nodes[cur / 2];
-        h->nodes[cur]->heap_id = cur;
+        h->nodes[cur]->heap_id_f = cur;
         cur /= 2;
     }
     h->nodes[cur] = n;
-    n->heap_id = cur;
+    n->heap_id_f = cur;
+
+    /* If will exceed current capacity, doubles the capacity. */
+    if (h->size == h->capacity - 1) {
+        h->capacity *= 2;
+        h->nodes = realloc(h->nodes, h->capacity * sizeof(node_t *));
+    }
+}
+
+void
+heap_insert_b (heap_t *h, node_t *n)
+{
+    int cur = ++h->size;    /* Index 0 lays dummy node, so increment first. */
+    h->nodes[h->size] = n;
+    while (node_less_b(n, h->nodes[cur / 2])) {
+        h->nodes[cur] = h->nodes[cur / 2];
+        h->nodes[cur]->heap_id_b = cur;
+        cur /= 2;
+    }
+    h->nodes[cur] = n;
+    n->heap_id_b = cur;
 
     /* If will exceed current capacity, doubles the capacity. */
     if (h->size == h->capacity - 1) {
@@ -72,24 +93,46 @@ heap_insert (heap_t *h, node_t *n)
  *
  */
 node_t *
-heap_extract (heap_t *h)
+heap_extract_f (heap_t *h)
 {
     node_t *ret = h->nodes[1];
     node_t *last = h->nodes[h->size--];
     int cur, child;
     for (cur = 1; 2 * cur <= h->size; cur = child) {
         child = 2 * cur;
-        if (child < h->size && node_less(h->nodes[child + 1],
+        if (child < h->size && node_less_f(h->nodes[child + 1],
                                          h->nodes[child]))
             child++;
-        if (node_less(h->nodes[child], last)) {
+        if (node_less_f(h->nodes[child], last)) {
             h->nodes[cur] = h->nodes[child];
-            h->nodes[cur]->heap_id = cur;
+            h->nodes[cur]->heap_id_f = cur;
         } else
             break;
     }
     h->nodes[cur] = last;
-    last->heap_id = cur;
+    last->heap_id_f = cur;
+    return ret;
+}
+
+node_t *
+heap_extract_b (heap_t *h)
+{
+    node_t *ret = h->nodes[1];
+    node_t *last = h->nodes[h->size--];
+    int cur, child;
+    for (cur = 1; 2 * cur <= h->size; cur = child) {
+        child = 2 * cur;
+        if (child < h->size && node_less_b(h->nodes[child + 1],
+                                         h->nodes[child]))
+            child++;
+        if (node_less_b(h->nodes[child], last)) {
+            h->nodes[cur] = h->nodes[child];
+            h->nodes[cur]->heap_id_b = cur;
+        } else
+            break;
+    }
+    h->nodes[cur] = last;
+    last->heap_id_b = cur;
     return ret;
 }
 
@@ -98,14 +141,27 @@ heap_extract (heap_t *h)
  *
  */
 void
-heap_update (heap_t *h, node_t *n)
+heap_update_f (heap_t *h, node_t *n)
 {
-    int cur = n->heap_id;
-    while (node_less(n, h->nodes[cur / 2])) {
+    int cur = n->heap_id_f;
+    while (node_less_f(n, h->nodes[cur / 2])) {
         h->nodes[cur] = h->nodes[cur / 2];
-        h->nodes[cur]->heap_id = cur;
+        h->nodes[cur]->heap_id_f = cur;
         cur /= 2;
     }
     h->nodes[cur] = n;
-    n->heap_id = cur;
+    n->heap_id_f = cur;
+}
+
+void
+heap_update_b (heap_t *h, node_t *n)
+{
+    int cur = n->heap_id_b;
+    while (node_less_b(n, h->nodes[cur / 2])) {
+        h->nodes[cur] = h->nodes[cur / 2];
+        h->nodes[cur]->heap_id_b = cur;
+        cur /= 2;
+    }
+    h->nodes[cur] = n;
+    n->heap_id_b = cur;
 }

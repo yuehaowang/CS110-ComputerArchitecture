@@ -42,25 +42,20 @@
 #include "maze.h"
 #include "compass.h"    /* The heuristic. */
 
-/* Local helper functions. */
-static node_t *fetch_neighbour (maze_t *m, node_t *n, int direction);
-
 /*
  * Entrance point. Time ticking will be performed on the whole procedure,
  *   including I/O. Parallelize and optimize as much as you can.
  *
  */
 
-maze_t *maze_f, *maze_b;
-heap_t *openset_f, *openset_b;
-int u = INT_MAX, F1, F2;
+maze_t *maze;
+int u = INT_MAX, F1, F2, is_finished;
 
 pthread_t forward_thread;
 pthread_t backward_thread;
-pthread_mutex_t maze_lock;
+pthread_mutex_t meet_pt_lock;
 
-node_t *meet_point_f;
-node_t *meet_point_b;
+node_t *meet_point = NULL;
 
 
 void* astar_forward();
@@ -70,92 +65,111 @@ void* astar_backward();
 int
 main (int argc, char *argv[])
 {
+    pthread_attr_t attr;
+    
     assert(argc == 2);  /* Must have given the source file name. */
 
     /* init threads and locks */
-    pthread_mutex_init(&maze_lock, NULL);
+    pthread_mutex_init(&meet_pt_lock, NULL);
 
     /* Initializations. */
-    maze_init(argv[1], &maze_f, &maze_b);
+    maze = maze_init(argv[1]);
 
-    maze_f->start->gs = 0;
-    maze_f->start->fs = heuristic(maze_f->start, maze_f->goal);
+    maze->start->gs_f = 0;
+    maze->start->fs_f = heuristic(maze->start, maze->goal);
 
-    maze_b->goal->gs = 0;
-    maze_b->goal->fs = heuristic(maze_b->goal, maze_b->start);
+    maze->goal->gs_b = 0;
+    maze->goal->fs_b = heuristic(maze->goal, maze->start);
 
-    openset_f = heap_init();
-    heap_insert(openset_f, maze_f->start);
+    /*openset_f = heap_init();
+    heap_insert_f(openset_f, maze->start);
     openset_b = heap_init();
-    heap_insert(openset_b, maze_b->goal);
+    heap_insert_b(openset_b, maze->goal);*/
 
     /* path search */
-    pthread_create(&forward_thread, NULL, &astar_forward, NULL);
-    pthread_create(&backward_thread, NULL, &astar_backward, NULL);
+    /*astar_forward();*/
+
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+    
+    pthread_create(&forward_thread, &attr, &astar_forward, NULL);
+    pthread_create(&backward_thread, &attr, &astar_backward, NULL);
+
+    pthread_attr_destroy(&attr);
+
     pthread_join(forward_thread, NULL);
     pthread_join(backward_thread, NULL);
 
     /* Print the steps back. */
-    maze_print_step(maze_f, meet_point_f);
-    maze_print_step(maze_b, meet_point_b);
-
+    /*printf("%d %d\n", meet_point->x, meet_point->y);*/
+    if (meet_point != NULL) {
+        maze_print_step(maze, meet_point);
+    }
     /* Free resources and return. */
-    pthread_mutex_destroy(&maze_lock);
+    pthread_mutex_destroy(&meet_pt_lock);
 
-    maze_destroy(maze_f, maze_b);
-    heap_destroy(openset_f);
-    heap_destroy(openset_b);
+    maze_destroy(maze);
+    
     return 0;
 }
 
 
 void* astar_forward()
 {
+    heap_t *openset_f;
     node_t *cur = NULL;
+
+    openset_f = heap_init();
+    heap_insert_f(openset_f, maze->start);
+
     /* Loop and repeatedly extracts the node with the highest f-score to
        process on. */
-    while (openset_f->size > 0 && openset_b->size > 0) {
+    while (!is_finished) {
         int direction;
-        node_t* cur_temp;
 
-        cur = heap_extract(openset_f);
+        cur = heap_extract_f(openset_f);
 
         if (cur->mark == GOAL)  /* Goal point reached. */
             break;
 
-        cur_temp = maze_b->nodes[cur->x * maze_b->cols + cur->y];
-
-        if (cur->closed != true && cur_temp->closed != true) {
-            if (cur->fs < u && (cur->gs + F2 - heuristic(cur, maze_f->start) < u)) {
+        if (cur->closed != true) {
+            if (cur->fs_f < u && (cur->gs_f + F2 - heuristic(cur, maze->start) < u)) {
                 /* Check all the neighbours. Since we are using a block maze, at most
                     four neighbours on the four directions. */
+                node_t *neighbours[4];
+                neighbours[0] = maze->nodes[maze->cols * cur->x + cur->y - 1];
+                neighbours[1] = maze->nodes[maze-> cols * (cur->x + 1) + cur->y];
+                neighbours[2] = maze->nodes[maze-> cols * cur->x + cur->y + 1];
+                neighbours[3] = maze->nodes[maze-> cols * (cur->x - 1) + cur->y];
                 for (direction = 0; direction < 4; ++direction) {
-                    node_t *n = fetch_neighbour(maze_f, cur, direction);
+                    node_t *n = neighbours[direction];
                     
-                    if (n == NULL || n->mark == WALL || n->closed)
+                    if (n == NULL || n->mark == WALL || n->closed) {
                         continue;   /* Not valid, or closed already. */
-
-                    if (n->opened && cur->gs + 1 >= n->gs)
-                        continue;   /* Old node met, not getting shorter. */
-
-                    /* Passing through CUR is the shortest way up to now. Update. */
-                    n->parent = cur;
-                    n->gs = cur->gs + 1;
-                    n->fs = n->gs + heuristic(n, maze_f->goal);
-                    if (!n->opened) {   /* New node discovered, add into heap. */
-                        n->opened = true;
-                        heap_insert(openset_f, n);
-                    } else              /* Updated old node. */
-                        heap_update(openset_f, n);
-
-                    pthread_mutex_lock(&maze_lock);
-                    cur_temp = maze_b->nodes[n->x * maze_b->cols + n->y];
-                    if (n->gs != INT_MAX && cur_temp->gs != INT_MAX && n->gs + cur_temp->gs < u) {
-                        u = n->gs + cur_temp->gs;
-                        meet_point_f = n;
-                        meet_point_b = cur_temp;
                     }
-                    pthread_mutex_unlock(&maze_lock);
+
+                    if (n->opened_f && cur->gs_f + 1 >= n->gs_f){
+                        continue;   /* Old node met, not getting shorter. */
+                    }
+                    /* Passing through CUR is the shortest way up to now. Update. */
+                    n->parent_f = cur;
+                    n->gs_f = cur->gs_f + 1;
+                    n->fs_f = n->gs_f + heuristic(n, maze->goal);
+                    if (!n->opened_f) {   /* New node discovered, add into heap. */
+                        n->opened_f = true;
+                        heap_insert_f(openset_f, n);
+                    } else {              /* Updated old node. */
+                        heap_update_f(openset_f, n);
+                    }
+
+                    if (n->gs_f != INT_MAX && n->gs_b != INT_MAX && n->gs_f + n->gs_b < u) {
+                        pthread_mutex_lock(&meet_pt_lock);
+                        if (n->gs_f != INT_MAX && n->gs_b != INT_MAX && n->gs_f + n->gs_b < u) {
+                            u = n->gs_f + n->gs_b;
+                            meet_point = n;
+                        }
+                        pthread_mutex_unlock(&meet_pt_lock);
+                    }
                 }
             }
 
@@ -163,88 +177,89 @@ void* astar_forward()
         }
 
         if (openset_f->size > 0) {
-            F1 = openset_f->nodes[1]->fs;
+            F1 = openset_f->nodes[1]->fs_f;
+        } else {
+            is_finished = 1;
         }
     }
+
+    heap_destroy(openset_f);
 
     return NULL;
 }
 
 void* astar_backward()
 {
+    heap_t *openset_b;
     node_t *cur = NULL;
+
+    openset_b = heap_init();
+    heap_insert_b(openset_b, maze->goal);
+
     /* Loop and repeatedly extracts the node with the highest f-score to
        process on. */
-    while (openset_b->size > 0 && openset_f->size > 0) {
+    while (!is_finished) {
         int direction;
-        node_t* cur_temp;
 
-        cur = heap_extract(openset_b);
+        cur = heap_extract_b(openset_b);
 
         if (cur->mark == START)  /* Goal point reached. */
             break;
 
-        cur_temp = maze_f->nodes[cur->x * maze_f->cols + cur->y];
-
-        if (cur->closed != true && cur_temp->closed != true) {
-            if (cur->fs < u && (cur->gs + F1 - heuristic(cur, maze_b->goal) < u)) {
+        if (cur->closed != true) {
+            if (cur->fs_b < u && (cur->gs_b + F1 - heuristic(cur, maze->goal) < u)) {
                 /* Check all the neighbours. Since we are using a block maze, at most
                     four neighbours on the four directions. */
+                node_t *neighbours[4];
+                neighbours[0] = maze->nodes[maze->cols * cur->x + cur->y - 1];
+                neighbours[1] = maze->nodes[maze-> cols * (cur->x + 1) + cur->y];
+                neighbours[2] = maze->nodes[maze-> cols * cur->x + cur->y + 1];
+                neighbours[3] = maze->nodes[maze-> cols * (cur->x - 1) + cur->y];
                 for (direction = 0; direction < 4; ++direction) {
-                    node_t *n = fetch_neighbour(maze_b, cur, direction);
+                    node_t *n = neighbours[direction];
                     
-                    if (n == NULL || n->mark == WALL || n->closed)
+                    if (n == NULL || n->mark == WALL || n->closed) {
                         continue;   /* Not valid, or closed already. */
+                    }
 
-                    if (n->opened && cur->gs + 1 >= n->gs)
+                    if (n->opened_b && cur->gs_b + 1 >= n->gs_b) {
                         continue;   /* Old node met, not getting shorter. */
+                    }
 
                     /* Passing through CUR is the shortest way up to now. Update. */
-                    n->parent = cur;
-                    n->gs = cur->gs + 1;
-                    n->fs = n->gs + heuristic(n, maze_b->start);
-                    if (!n->opened) {   /* New node discovered, add into heap. */
-                        n->opened = true;
-                        heap_insert(openset_b, n);
-                    } else              /* Updated old node. */
-                        heap_update(openset_b, n);
-
-                    pthread_mutex_lock(&maze_lock);
-                    cur_temp = maze_f->nodes[n->x * maze_f->cols + n->y];
-                    if (n->gs != INT_MAX && cur_temp->gs != INT_MAX && n->gs + cur_temp->gs < u) {
-                        u = n->gs + cur_temp->gs;
-                        meet_point_f = cur_temp;
-                        meet_point_b = n;
+                    n->parent_b = cur;
+                    n->gs_b = cur->gs_b + 1;
+                    n->fs_b = n->gs_b + heuristic(n, maze->start);
+                    if (!n->opened_b) {   /* New node discovered, add into heap. */
+                        n->opened_b = true;
+                        heap_insert_b(openset_b, n);
+                    } else {              /* Updated old node. */
+                        heap_update_b(openset_b, n);
                     }
-                    pthread_mutex_unlock(&maze_lock);
+
+                    if (n->gs_b != INT_MAX && n->gs_f != INT_MAX && n->gs_b + n->gs_f < u) {
+                        pthread_mutex_lock(&meet_pt_lock);
+                        if (n->gs_b != INT_MAX && n->gs_f != INT_MAX && n->gs_b + n->gs_f < u) {
+                            u = n->gs_b + n->gs_f;
+                            meet_point = n;
+                        }
+                        pthread_mutex_unlock(&meet_pt_lock);
+                    }
                 }
             }
 
             cur->closed = true;
         }
-
+        
         if (openset_b->size > 0) {
-            F2 = openset_b->nodes[1]->fs;
+            F2 = openset_b->nodes[1]->fs_b;
+        } else {
+            is_finished = 1;
         }
     }
 
+    heap_destroy(openset_b);
+
     return NULL;
 }
 
-
-/*
- * Fetch the neighbour located at direction DIRECTION of node N, in the
- *   maze M. Returns pointer to the neighbour node.
- *
- */
-static node_t *
-fetch_neighbour (maze_t *m, node_t *n, int direction)
-{
-    switch (direction) {
-        case 0: return maze_get_cell(m, n->x, n->y - 1);
-        case 1: return maze_get_cell(m, n->x + 1, n->y);
-        case 2: return maze_get_cell(m, n->x, n->y + 1);
-        case 3: return maze_get_cell(m, n->x - 1, n->y);
-    }
-    return NULL;
-}

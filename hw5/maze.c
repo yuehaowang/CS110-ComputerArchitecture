@@ -27,12 +27,11 @@ static mark_t char_to_mark (char c);
  *   pointer to the new maze.
  *
  */
-void
-maze_init (char *filename, maze_t** m_f, maze_t** m_b)
+maze_t*
+maze_init (char *filename)
 {
     int rows, cols, i, j, f;
     maze_t *m = malloc(sizeof(maze_t));
-    maze_t *m2 = malloc(sizeof(maze_t));
 
     /* fopen file handler */
     FILE* temp_file;
@@ -48,10 +47,8 @@ maze_init (char *filename, maze_t** m_f, maze_t** m_b)
     fscanf(temp_file, "%d %d\n", &rows, &cols);
     /* store rows */
     m->rows = rows;
-    m2->rows = rows;
     /* store cols */
     m->cols = cols;
-    m2->cols = cols;
     /* close file handle */
     fclose(temp_file);
 
@@ -68,14 +65,11 @@ maze_init (char *filename, maze_t** m_f, maze_t** m_b)
 
     /* store file handle */
     m->file = f;
-    m2->file = f;
     /* store file size */
     m->file_size = file_info.st_size;
-    m2->file_size = file_info.st_size;
 
     /* create memory map */
     m->map = (char*)mmap(0, file_info.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, f, 0);
-    m2->map = m->map;
     /* init map-reading index */
     map_offset = 0;
     /* if mmap failed */
@@ -89,30 +83,23 @@ maze_init (char *filename, maze_t** m_f, maze_t** m_b)
        in from the source file. The maze records all pointers to its nodes
        in an array NODES. */
     m->nodes = malloc(rows * cols * sizeof(node_t *));
-    m2->nodes = malloc(rows * cols * sizeof(node_t *));
     for (i = 0; i < rows; ++i) {
         for (j = 0; j < cols; ++j) {
-            mark_t mark, mark2;
+            mark_t mark;
 
             mark = char_to_mark(m->map[map_offset + i * (cols + 1) + j]);
             maze_set_cell(m, i, j, mark);
 
-            mark2 = char_to_mark(m2->map[map_offset + i * (cols + 1) + j]);
-            maze_set_cell(m2, i, j, mark2);
-
             if (mark == START) {
                 m->start = maze_get_cell(m, i, j);
-                m2->start = maze_get_cell(m2, i, j);
             } else if (mark == GOAL) {
                 m->goal = maze_get_cell(m, i, j);
-                m2->goal = maze_get_cell(m2, i, j);
             }
         }
         
     }
 
-    *m_f = m;
-    *m_b = m2;
+    return m;
 }
 
 /* 
@@ -120,23 +107,20 @@ maze_init (char *filename, maze_t** m_f, maze_t** m_b)
  *
  */
 void
-maze_destroy (maze_t *m1, maze_t *m2)
+maze_destroy (maze_t *m)
 {
     int i, j;
-    for (i = 0; i < m1->rows; ++i) {
-        for (j = 0; j < m1->cols; ++j) {
-            free(m1->nodes[i * m1->cols + j]);
-            free(m2->nodes[i * m2->cols + j]);
+    for (i = 0; i < m->rows; ++i) {
+        for (j = 0; j < m->cols; ++j) {
+            free(m->nodes[i * m->cols + j]);
         }
     }
-    free(m1->nodes);
-    free(m2->nodes);
+    free(m->nodes);
 
-    munmap(m1->map, m1->file_size);
-    close(m1->file);
-    
-    free(m1);
-    free(m2);
+    munmap(m->map, m->file_size);
+    close(m->file);
+
+    free(m);
 }
 
 /* 
@@ -178,6 +162,8 @@ maze_print_step (maze_t *m, node_t *n)
     /*long map_idx;*/
     long offset_map_idx;
 
+    node_t* cur;
+
     map = m->map;
     if (map == MAP_FAILED)
     {
@@ -188,12 +174,24 @@ maze_print_step (maze_t *m, node_t *n)
     offset_map_idx = 0;
     while (map[offset_map_idx++] != '\n');
 
-    while (n != NULL && n->parent != NULL) {
+    /* forward */
+    cur = n;
+    while (cur != NULL && cur->parent_f != NULL) {
         /* write to memory */
-        if (n->mark != START && n->mark != GOAL)
-            map[offset_map_idx + (n->x * (m->cols + 1)) + n->y] = '*';
+        if (cur->mark != START && cur->mark != GOAL)
+            map[offset_map_idx + (cur->x * (m->cols + 1)) + cur->y] = '*';
         
-        n = n->parent;
+        cur = cur->parent_f;
+    }
+
+    /* backward */
+    cur = n->parent_b;
+    while (cur != NULL) {
+        /* write to memory */
+        if (cur->mark != START && cur->mark != GOAL)
+            map[offset_map_idx + (cur->x * (m->cols + 1)) + cur->y] = '*';
+        
+        cur = cur->parent_b;
     }
 
     /* sync to disk */

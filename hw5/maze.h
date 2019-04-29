@@ -32,8 +32,8 @@ typedef struct maze_t
 } maze_t;
 
 /* Function prototypes. */
-void maze_init (char *filename, maze_t** m_f, maze_t** m_b);
-void maze_destroy (maze_t *m1, maze_t *m2);
+maze_t* maze_init (char *filename);
+void maze_destroy (maze_t *m);
 void maze_set_cell (maze_t *m, int x, int y, mark_t mark);
 node_t *maze_get_cell (maze_t *m, int x, int y);
 void maze_print_step (maze_t *m, node_t *n);

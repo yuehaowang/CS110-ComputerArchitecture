@@ -24,13 +24,18 @@ node_init (int x, int y, mark_t mark)
     node_t *n = malloc(sizeof(node_t));
     n->x = x;
     n->y = y;
-    n->gs = INT_MAX;
-    n->fs = INT_MAX;
+    n->gs_f = INT_MAX;
+    n->fs_f = INT_MAX;
+    n->gs_b = INT_MAX;
+    n->fs_b = INT_MAX;
     n->mark = mark;
-    n->heap_id = 0;
-    n->opened = false;
+    n->heap_id_f = 0;
+    n->heap_id_b = 0;
+    n->opened_f = false;
+    n->opened_b = false;
     n->closed = false;
-    n->parent = NULL;
+    n->parent_f = NULL;
+    n->parent_b = NULL;
     return n;
 }
 
@@ -50,7 +55,13 @@ node_destroy (node_t *n)
  *
  */
 bool
-node_less (node_t *n1, node_t *n2)
+node_less_f (node_t *n1, node_t *n2)
 {
-    return n1->fs < n2->fs;
+    return n1->fs_f < n2->fs_f;
+}
+
+bool
+node_less_b (node_t *n1, node_t *n2)
+{
+    return n1->fs_b < n2->fs_b;
 }

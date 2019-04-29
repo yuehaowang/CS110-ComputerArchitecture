@@ -1,5 +1,5 @@
 *.o
-astar
+astar*
 std_ans/
 test*
 maze*.txt

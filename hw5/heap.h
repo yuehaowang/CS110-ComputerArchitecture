@@ -32,8 +32,11 @@ typedef struct heap_t
 /* Function prototypes. */
 heap_t *heap_init (void);
 void heap_destroy (heap_t *h);
-void heap_insert (heap_t *h, node_t *n);
-node_t *heap_extract (heap_t *h);
-void heap_update (heap_t *h, node_t *n);
+void heap_insert_f (heap_t *h, node_t *n);
+node_t *heap_extract_f (heap_t *h);
+void heap_update_f (heap_t *h, node_t *n);
+void heap_insert_b (heap_t *h, node_t *n);
+node_t *heap_extract_b (heap_t *h);
+void heap_update_b (heap_t *h, node_t *n);
 
 #endif
