@@ -100,8 +100,7 @@ heap_extract_f (heap_t *h)
     int cur, child;
     for (cur = 1; 2 * cur <= h->size; cur = child) {
         child = 2 * cur;
-        if (child < h->size && node_less_f(h->nodes[child + 1],
-                                         h->nodes[child]))
+        if (child < h->size && node_less_f(h->nodes[child + 1], h->nodes[child]))
             child++;
         if (node_less_f(h->nodes[child], last)) {
             h->nodes[cur] = h->nodes[child];
@@ -122,8 +121,7 @@ heap_extract_b (heap_t *h)
     int cur, child;
     for (cur = 1; 2 * cur <= h->size; cur = child) {
         child = 2 * cur;
-        if (child < h->size && node_less_b(h->nodes[child + 1],
-                                         h->nodes[child]))
+        if (child < h->size && node_less_b(h->nodes[child + 1], h->nodes[child]))
             child++;
         if (node_less_b(h->nodes[child], last)) {
             h->nodes[cur] = h->nodes[child];

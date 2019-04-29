@@ -27,57 +27,18 @@ static mark_t char_to_mark (char c);
  *   pointer to the new maze.
  *
  */
-maze_t*
+maze_t *
 maze_init (char *filename)
 {
-    int rows, cols, i, j, f;
+    int rows, cols, i, j, c;
     maze_t *m = malloc(sizeof(maze_t));
 
-    /* fopen file handler */
-    FILE* temp_file;
-    /* a struct to store file info */
-    struct stat file_info;
-    /* map-reading index */
-    int map_offset;
-
     /* Open the source file and read in number of rows & cols. */
-    temp_file = fopen(filename, "r+");    /* Open with "r+" since might modify */
-                                          /* at maze_print_step.               */
-    /* get rows and cols */
-    fscanf(temp_file, "%d %d\n", &rows, &cols);
-    /* store rows */
+    m->file = fopen(filename, "r+");    /* Open with "r+" since might modify */
+                                        /* at maze_print_step.               */
+    fscanf(m->file, "%d %d\n", &rows, &cols);
     m->rows = rows;
-    /* store cols */
     m->cols = cols;
-    /* close file handle */
-    fclose(temp_file);
-
-    /* open file handle */
-    f = open(filename, O_RDWR, (mode_t)0600);
-    /* if failed to open file */
-    if (f == -1) {
-        perror("Error opening file for writing");
-    }
-    /* get file info */
-    if (fstat(f, &file_info) == -1) {
-        perror("Error getting the file size");
-    }
-
-    /* store file handle */
-    m->file = f;
-    /* store file size */
-    m->file_size = file_info.st_size;
-
-    /* create memory map */
-    m->map = (char*)mmap(0, file_info.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, f, 0);
-    /* init map-reading index */
-    map_offset = 0;
-    /* if mmap failed */
-    if (m->map == MAP_FAILED) {
-        perror("Failed to mmap file (read map)");
-    }
-    /* skip rows and cols */
-    while (m->map[map_offset++] != '\n');
 
     /* Allocate space for all nodes (cells) inside the maze, then read them
        in from the source file. The maze records all pointers to its nodes
@@ -85,18 +46,14 @@ maze_init (char *filename)
     m->nodes = malloc(rows * cols * sizeof(node_t *));
     for (i = 0; i < rows; ++i) {
         for (j = 0; j < cols; ++j) {
-            mark_t mark;
-
-            mark = char_to_mark(m->map[map_offset + i * (cols + 1) + j]);
+            mark_t mark = char_to_mark(fgetc(m->file));
             maze_set_cell(m, i, j, mark);
-
-            if (mark == START) {
+            if (mark == START)
                 m->start = maze_get_cell(m, i, j);
-            } else if (mark == GOAL) {
-                m->goal = maze_get_cell(m, i, j);
-            }
+            else if (mark == GOAL)
+                m->goal  = maze_get_cell(m, i, j);
         }
-        
+        while ((c = fgetc(m->file)) != '\n' && c != EOF);
     }
 
     return m;
@@ -117,8 +74,7 @@ maze_destroy (maze_t *m)
     }
     free(m->nodes);
 
-    munmap(m->map, m->file_size);
-    close(m->file);
+    fclose(m->file);
 
     free(m);
 }
@@ -157,48 +113,33 @@ maze_get_cell (maze_t *m, int x, int y)
 void
 maze_print_step (maze_t *m, node_t *n)
 {
-    /*int i;*/
-    char* map;
-    /*long map_idx;*/
-    long offset_map_idx;
-
+    int maze_offset;
     node_t* cur;
 
-    map = m->map;
-    if (map == MAP_FAILED)
-    {
-        perror("Failed to mmap file (write map)");
-        exit(EXIT_FAILURE);
-    }
-
-    offset_map_idx = 0;
-    while (map[offset_map_idx++] != '\n');
+    fseek(m->file, 0, SEEK_SET);
+    maze_offset = 0;
+    while (++maze_offset && fgetc(m->file) != '\n');
 
     /* forward */
     cur = n;
     while (cur != NULL && cur->parent_f != NULL) {
-        /* write to memory */
-        if (cur->mark != START && cur->mark != GOAL)
-            map[offset_map_idx + (cur->x * (m->cols + 1)) + cur->y] = '*';
-        
+        if (cur->mark != START && cur->mark != GOAL) {
+            fseek(m->file, maze_offset + (cur->x * (m->cols + 1)) + cur->y, SEEK_SET);
+            fputc('*', m->file);
+        }
         cur = cur->parent_f;
     }
 
     /* backward */
     cur = n->parent_b;
     while (cur != NULL) {
-        /* write to memory */
-        if (cur->mark != START && cur->mark != GOAL)
-            map[offset_map_idx + (cur->x * (m->cols + 1)) + cur->y] = '*';
-        
+        if (cur->mark != START && cur->mark != GOAL) {
+            fseek(m->file, maze_offset + (cur->x * (m->cols + 1)) + cur->y, SEEK_SET);
+            fputc('*', m->file);
+        }
         cur = cur->parent_b;
     }
 
-    /* sync to disk */
-    if (msync(map, m->file_size, MS_SYNC) == -1) {
-        /* if failed to sync */
-        perror("Failed to sync the file to disk (write map)");
-    }
 }
 
 

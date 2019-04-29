@@ -26,9 +26,7 @@ typedef struct maze_t
     node_t **nodes;     /* Array of node pointers. */
     node_t *start;      /* Start node pointer. */
     node_t *goal;       /* Goal node pointer. */
-    int file;           /* Source file pointer. */
-    int file_size;      /* Size of file */
-    char* map;          /* Memory map address */
+    FILE* file;         /* Source file pointer. */
 } maze_t;
 
 /* Function prototypes. */

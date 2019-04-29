@@ -48,11 +48,7 @@
  *
  */
 
-maze_t *maze;
 int u = INT_MAX, F1, F2, is_finished;
-
-pthread_t forward_thread;
-pthread_t backward_thread;
 pthread_mutex_t meet_pt_lock;
 
 node_t *meet_point = NULL;
@@ -65,7 +61,9 @@ void* astar_backward();
 int
 main (int argc, char *argv[])
 {
-    pthread_attr_t attr;
+    pthread_t forward_thread;
+    pthread_t backward_thread;
+    maze_t *maze;
     
     assert(argc == 2);  /* Must have given the source file name. */
 
@@ -89,13 +87,8 @@ main (int argc, char *argv[])
     /* path search */
     /*astar_forward();*/
 
-    pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-    
-    pthread_create(&forward_thread, &attr, &astar_forward, NULL);
-    pthread_create(&backward_thread, &attr, &astar_backward, NULL);
-
-    pthread_attr_destroy(&attr);
+    pthread_create(&forward_thread, NULL, &astar_forward, &maze);
+    pthread_create(&backward_thread, NULL, &astar_backward, &maze);
 
     pthread_join(forward_thread, NULL);
     pthread_join(backward_thread, NULL);
@@ -114,10 +107,11 @@ main (int argc, char *argv[])
 }
 
 
-void* astar_forward()
+void* astar_forward(void** m)
 {
     heap_t *openset_f;
     node_t *cur = NULL;
+    maze_t *maze = *(maze_t**)m;
 
     openset_f = heap_init();
     heap_insert_f(openset_f, maze->start);
@@ -188,10 +182,11 @@ void* astar_forward()
     return NULL;
 }
 
-void* astar_backward()
+void* astar_backward(void** m)
 {
     heap_t *openset_b;
     node_t *cur = NULL;
+    maze_t *maze = *(maze_t**)m;
 
     openset_b = heap_init();
     heap_insert_b(openset_b, maze->goal);
