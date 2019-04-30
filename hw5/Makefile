@@ -31,5 +31,8 @@ perf: $(TARGET)
 clearmap:
 	cp maps/*.txt ./
 
+genmap: maze_generator.c
+	${CC} $< -o genmap
+
 dist:
 	tar cf hw5.tar main.c maze.c maze.h heap.c heap.h node.c node.h

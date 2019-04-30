@@ -1,5 +1,6 @@
 *.o
 astar*
+genmap
 std_ans/
 test*
 maze*.txt
