@@ -131,13 +131,17 @@ Node *link( Node *n )
             
             //Remove wall between nodes
             nodes[n->x + ( x - n->x ) / 2 + ( n->y + ( y - n->y ) / 2 ) * width].c = ' ';
+
+            if (goal == NULL || (goal->x + goal->y) < (dest->x + dest->y)) {
+                goal = dest;
+            }
             
             //Return address of the child node
             return dest;
         }
     }
 
-    if (goal == NULL) {
+    if (goal == NULL || (goal->x + goal->y) < (n->x + n->y)) {
         goal = n;
     }
     
