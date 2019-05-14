@@ -68,7 +68,7 @@ void test_int()
     ll.reverse();
     std::cout << *(it2++) << std::endl;
 
-    // Testcase: head->4->5->2->1->3->tail
+    // Testcase: head->4->5->1->3->tail
     it2 = ll.erase(++it2);
     print_doubll<int>(ll);
     
