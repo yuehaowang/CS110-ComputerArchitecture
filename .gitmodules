@@ -7,3 +7,6 @@
 [submodule "ALU-Regfile"]
 	path = ALU-Regfile
 	url = https://github.com/peihaowang/ALU-Regfile.git
+[submodule "CPU"]
+	path = CPU
+	url = https://github.com/yuehaowang/CPU
