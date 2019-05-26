@@ -1,0 +1,5 @@
+$# Number of command-line arguments or positional parameters
+$* All of the positional parameters, seen as a single word
+$$ PID of the script itself.
+$! PID of last job run in background
+$? Exit status of a command, function, or the script itself
