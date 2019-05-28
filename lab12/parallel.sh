@@ -9,9 +9,15 @@ start_seconds=$(date --date="$start_time" +%s);
 # the original scripts run the tasks in sequence though they are actually independent
 # try to run them concurrently thus reduce the waiting time
 ./task1.sh &
+task1=$!
 ./task2.sh &
+task2=$!
 ./task3.sh &
+task3=$!
 ./task4.sh &
+task4=$!
+
+wait $task1 $task2 $task3 $task4
 
 end_time=`date +'%Y-%m-%d %H:%M:%S'`
 end_seconds=$(date --date="$end_time" +%s);
