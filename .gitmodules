@@ -10,3 +10,6 @@
 [submodule "CPU"]
 	path = CPU
 	url = https://github.com/yuehaowang/CPU
+[submodule "ParallelKMeans"]
+	path = ParallelKMeans
+	url = https://github.com/peihaowang/ParallelKMeans.git
