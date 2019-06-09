@@ -10,3 +10,6 @@
 [submodule "CPU"]
 	path = CPU
 	url = https://github.com/yuehaowang/CPU
+[submodule "SimpleBash"]
+	path = SimpleBash
+	url = https://github.com/peihaowang/SimpleBash.git
