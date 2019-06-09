@@ -13,3 +13,6 @@
 [submodule "SimpleBash"]
 	path = SimpleBash
 	url = https://github.com/peihaowang/SimpleBash.git
+[submodule "ParallelKMeans"]
+	path = ParallelKMeans
+	url = https://github.com/peihaowang/ParallelKMeans.git
