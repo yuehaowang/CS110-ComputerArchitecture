@@ -2,7 +2,7 @@
 
 - Instructor: Sören Schwertfeger 师泽仁
 
-- Webpage: http://shtech.org/course/ca/19s/
+- Webpage: https://robotics.shanghaitech.edu.cn/courses/ca/19s/
 
 - May my passion on computer science burns forever.
 
